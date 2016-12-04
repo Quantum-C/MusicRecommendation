@@ -2,10 +2,12 @@ from __future__ import division
 from collections import defaultdict
 from operator import itemgetter
 import random
-import time
 
-
-start_time = time.time()
+w_us = [0, 0.1, 0.2, 0.3, 0.4]
+alpha_u = 0.3
+q_us = [5, 6]
+alpha_s = 0.2
+q_ss = [1, 2, 3]
 
 favSongs = defaultdict(set)
 numFavSongs = defaultdict(int)
@@ -75,49 +77,54 @@ for u, ss in favSongs.iteritems():
         whoLikes[s].add(u)
         numWhoLikes[s] += 1
 
-w_u = 0
-MAP = 0
 tau = 500
-alpha_u = 0.3
-q_u = 5
-alpha_s = 0.2
-q_s = 3
+stro = ''
+f = open('ml111.out','w')
 
-for ii, u2pred in enumerate(favSongs_v.keys()):
-    predRes = list()
-    for s2check in range(maxSID):
-        # If it is a known favorite song (in training set), we skip it
-        if s2check in favSongs[u2pred]:
-            continue
-        # Calculate score_u
-        score_u = 0
-        for u in whoLikes[s2check]:
-            # Calculate similarity between u and u2pred
-            score_u += pow(len(favSongs[u].intersection(favSongs[u2pred]))/pow(numFavSongs[u2pred], alpha_u)/pow(numFavSongs[u], 1 - alpha_u), q_u)
-        # Calculate score_s
-        score_s = 0
-        for s in favSongs[u2pred]:
-            if numWhoLikes[s2check] == 0:
-                continue
-            # Calculate similarity between s and s2check
-            score_s += pow(len(whoLikes[s].intersection(whoLikes[s2check])) / (
-                pow(numWhoLikes[s2check], alpha_s) * pow(numWhoLikes[s], 1 - alpha_s)), q_s)
-        score = score_s
-        predRes.append((s2check, score))
-    predRes = sorted(predRes, key=itemgetter(1), reverse=True)
-    hitCtr = 0
-    AP = 0
-    l = len(favSongs_v[u2pred])
-    for i, (rec_s, score) in enumerate(predRes):
-        if i == min(tau, l):
-            break
-        if rec_s in favSongs_v[u2pred]:
-            hitCtr += 1
-            AP += hitCtr / (i + 1)
-    AP /= min(tau, l)
-    print(str(ii) + ': ' + str(hitCtr))
-    MAP += AP
+for w_u in w_us:
+    for q_u in q_us:
+        for q_s in q_ss:
+            MAP = 0
+            for ii, u2pred in enumerate(favSongs_v.keys()):
+                predRes = list()
+                for s2check in range(maxSID):
+                    # If it is a known favorite song (in training set), we skip it
+                    if s2check in favSongs[u2pred]:
+                        continue
+                    # Calculate score_u
+                    score_u = 0
+                    for u in whoLikes[s2check]:
+                        # Calculate similarity between u and u2pred
+                        score_u += pow(
+                            len(favSongs[u].intersection(favSongs[u2pred])) / pow(numFavSongs[u2pred], alpha_u) / pow(
+                                numFavSongs[u], 1 - alpha_u), q_u)
+                    # Calculate score_s
+                    score_s = 0
+                    for s in favSongs[u2pred]:
+                        if numWhoLikes[s2check] == 0:
+                            continue
+                        # Calculate similarity between s and s2check
+                        score_s += pow(len(whoLikes[s].intersection(whoLikes[s2check])) / (
+                            pow(numWhoLikes[s2check], alpha_s) * pow(numWhoLikes[s], 1 - alpha_s)), q_s)
+                    score = score_s
+                    predRes.append((s2check, score))
+                predRes = sorted(predRes, key=itemgetter(1), reverse=True)
+                hitCtr = 0
+                AP = 0
+                l = len(favSongs_v[u2pred])
+                for i, (rec_s, score) in enumerate(predRes):
+                    if i == min(tau, l):
+                        break
+                    if rec_s in favSongs_v[u2pred]:
+                        hitCtr += 1
+                        AP += hitCtr / (i + 1)
+                AP /= min(tau, l)
+                print(str(ii) + ': ' + str(hitCtr))
+                MAP += AP
+            MAP /= len(favSongs_v.keys())
+            stro += 'wu: ' + str(w_u) + ', q_u: ' + str(q_u) + ', q_s: ' + str(q_s) + str(MAP) + '\n'
+    print 'OKOKOKOKOK'
+    f.write(stro)
+    stro = ''
 
-MAP /= len(favSongs_v.keys())
-print(time.time()-start_time)
-print(MAP)
+f.close()
