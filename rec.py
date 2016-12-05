@@ -4,9 +4,9 @@ from operator import itemgetter
 import random
 
 w_us = [0, 0.1, 0.2, 0.3, 0.4]
-alpha_u = 0.3
+alpha_u = 0.4
 q_us = [5, 6]
-alpha_s = 0.2
+alpha_s = 0.15
 q_ss = [1, 2, 3]
 
 favSongs = defaultdict(set)
@@ -106,7 +106,7 @@ for w_u in w_us:
                         # Calculate similarity between s and s2check
                         score_s += pow(len(whoLikes[s].intersection(whoLikes[s2check])) / (
                             pow(numWhoLikes[s2check], alpha_s) * pow(numWhoLikes[s], 1 - alpha_s)), q_s)
-                    score = score_s
+                    score = w_u * score_u + (1 - w_u) * score_s
                     predRes.append((s2check, score))
                 predRes = sorted(predRes, key=itemgetter(1), reverse=True)
                 hitCtr = 0
@@ -119,11 +119,11 @@ for w_u in w_us:
                         hitCtr += 1
                         AP += hitCtr / (i + 1)
                 AP /= min(tau, l)
-                print(str(ii) + ': ' + str(hitCtr))
+                # print(str(ii) + ': ' + str(hitCtr))
                 MAP += AP
             MAP /= len(favSongs_v.keys())
-            stro += 'wu: ' + str(w_u) + ', q_u: ' + str(q_u) + ', q_s: ' + str(q_s) + str(MAP) + '\n'
-    print 'OKOKOKOKOK'
+            stro += str(w_u) + ' ' + str(q_u) + ' ' + str(q_s) + ' ' + str(MAP) + '\n'
+    print('20% Completed')
     f.write(stro)
     stro = ''
 
