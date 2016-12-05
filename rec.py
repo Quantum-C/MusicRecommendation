@@ -4,7 +4,7 @@ from operator import itemgetter
 import random
 
 w_us = [0, 0.1, 0.2, 0.3, 0.4]
-alpha_u = 0.4
+alpha_u = 0.3
 q_us = [5, 6]
 alpha_s = 0.15
 q_ss = [1, 2, 3]
